@@ -12,15 +12,143 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Grid container */
+.ag-theme-custom {
+  border: 1px solid #e5e7eb; /* Subtle border around the grid */
+  border-radius: 0px; /* Rounded corners as per your component */
+}
+
+/* Header styling */
+.ag-theme-custom .ag-header {
+  background-color: #f3f4f6; /* Light gray background */
+  color: #1f2937; /* Dark gray text */
+  font-weight: 600;
+  font-size: 14px;
+  border-bottom: 1px solid #e5e7eb; /* Subtle border below header */
+}
+
+/* Row styling */
+.ag-theme-custom .ag-row {
+  font-size: 14px;
+  background-color: #ffffff; /* White background for all rows */
+  transition: background 0.2s ease;
+}
+
+/* Remove alternating row colors */
+.ag-theme-custom .ag-row-odd,
+.ag-theme-custom .ag-row-even {
+  background-color: #ffffff;
+}
+
+/* Row hover effect */
+.ag-theme-custom .ag-row:hover {
+  background-color: #f9fafb; /* Very light gray on hover */
+}
+
+/* Cell styling */
+.ag-theme-custom .ag-cell {
+  padding: 10px 12px; /* Adjusted padding for cells */
+  border-right: 1px solid #e5e7eb; /* Vertical lines between cells */
+  color: #1f2937; /* Dark gray text */
+}
+
+/* Remove the last cell's right border to avoid double borders */
+.ag-theme-custom .ag-cell:last-child {
+  border-right: none;
+}
+
+/* Center specific columns */
+.ag-theme-custom .ag-header-cell-label,
+.ag-theme-custom .ag-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Center text in header and cells */
+}
+
+/* Left-align specific columns (e.g., Title, Location) */
+.ag-theme-custom .ag-header-cell[aria-colindex="2"] .ag-header-cell-label,
+.ag-theme-custom .ag-header-cell[aria-colindex="4"] .ag-header-cell-label,
+.ag-theme-custom .ag-cell[aria-colindex="2"],
+.ag-theme-custom .ag-cell[aria-colindex="4"] {
+  justify-content: flex-start; /* Left-align Title and Location */
+}
+
+/* Icon styling in the Action column */
+.ag-theme-custom .ag-cell[aria-colindex="7"] .ag-icon {
+  font-size: 16px;
+}
+
+/* Style for QR scan and Edit icons (blue) */
+.ag-theme-custom .ag-cell[aria-colindex="7"] .ag-icon-qr,
+.ag-theme-custom .ag-cell[aria-colindex="7"] .ag-icon-edit {
+  color: #3b82f6; /* Blue for QR and Edit icons */
+}
+
+/* Style for Delete icon (red) */
+.ag-theme-custom .ag-cell[aria-colindex="7"] .ag-icon-trash {
+  color: #ef4444; /* Red for Delete icon */
+}
+
+/* Pagination panel */
+.ag-theme-custom .ag-paging-panel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px !important;
+  gap: 10px;
+  border-top: 1px solid #e5e7eb; /* Subtle border above pagination */
+}
+
+/* Pagination buttons */
+.ag-theme-custom .ag-paging-panel .ag-paging-button {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 0px;
+  background-color: #ea580c; /* Orange buttons */
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.ag-theme-custom .ag-paging-panel .ag-paging-button:hover {
+  background-color: #f97316; /* Lighter orange on hover */
+}
+
+/* Pagination row summary */
+.ag-theme-custom .ag-paging-panel .ag-paging-row-summary-panel {
+  font-size: 12px;
+  color: #374151;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ag-theme-custom .ag-paging-panel {
+    flex-direction: column;
+    padding: 8px !important;
+    gap: 8px;
+    font-size: 12px !important;
+  }
+
+  .ag-theme-custom .ag-header {
+    font-size: 12px !important;
+  }
+
+  .ag-theme-custom .ag-cell {
+    padding: 8px 10px !important;
+  }
+
+  .ag-theme-custom .ag-paging-panel .ag-paging-button {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  .ag-theme-custom .ag-paging-panel .ag-paging-row-summary-panel {
+    font-size: 10px;
+  }
 }
