@@ -4,11 +4,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { Menu, X } from "lucide-react"; // Menu = Hamburger, X = Close
 import LockstopLogo from "../../public/Lockstop-icon.svg";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
+  const router = useRouter();
   const toggleDrawer = () => setIsDrawerOpen(!isDrawerOpen);
+  const handleLogout = () => {
+    Cookies.remove("auth_token"); // Remove the auth_token cookie
+    router.push("/"); // Redirect to homepage
+  };
 
   return (
     <>
@@ -22,7 +28,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Links */}
-          <div className="hidden sm:flex space-x-6 text-sm font-semibold">
+          <div className="hidden sm:flex items-center space-x-6 text-sm font-semibold">
             <a
               href="https://www.lockstop.co/lockstopinsider"
               className="hover:underline"
@@ -47,6 +53,12 @@ export default function Navbar() {
             >
               BLOG
             </a>
+            <button
+              onClick={handleLogout}
+              className="bg-orange-700 hover:bg-orange-800 text-white font-semibold py-2 px-4 rounded transition"
+            >
+              Logout
+            </button>
           </div>
 
           {/* Hamburger Button - mobile only */}
@@ -62,17 +74,15 @@ export default function Navbar() {
 
       {/* Drawer Overlay */}
       <div
-        className={`fixed inset-0 bg-gray-300/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${
-          isDrawerOpen ? "opacity-100 visible" : "opacity-0 invisible"
-        }`}
+        className={`fixed inset-0 bg-gray-300/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${isDrawerOpen ? "opacity-100 visible" : "opacity-0 invisible"
+          }`}
         onClick={toggleDrawer}
       />
 
       {/* Drawer Content */}
       <div
-        className={`fixed top-0 right-0 w-64 h-full bg-white text-orange-600 shadow-lg z-50 p-6 transform transition-transform duration-300 ${
-          isDrawerOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 w-64 h-full bg-white text-orange-600 shadow-lg z-50 p-6 transform transition-transform duration-300 ${isDrawerOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold">Menu</h2>
@@ -105,6 +115,12 @@ export default function Navbar() {
           >
             BLOG
           </a>
+          <button
+            onClick={handleLogout}
+            className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2 px-4 rounded transition w-full text-left"
+          >
+            Logout
+          </button>
         </div>
       </div>
     </>

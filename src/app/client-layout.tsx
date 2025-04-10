@@ -21,10 +21,15 @@ export default function ClientLayout({
   useEffect(() => {
     setLoading(true);
     const token = Cookies.get("auth_token");
+    console.log('token is', token);
+
     if (token) {
       router.push("/event-details");
     }
-    router.replace('/');
+    else {
+
+      router.replace('/');
+    }
     setLoading(false);
 
   }, [router]);
@@ -32,7 +37,7 @@ export default function ClientLayout({
   return <>
     {loading ? (<div className="w-full h-full flex justify-center items-center">
       <Flex justify="center" align="center" style={{ height: "100vh" }}>
-        <Spin indicator={<LoadingOutlined style={{ fontSize: 80,color: "#ef4444" }} spin allowFullScreen={true} />} />
+        <Spin indicator={<LoadingOutlined style={{ fontSize: 80, color: "#ef4444" }} spin allowFullScreen={true} />} />
       </Flex>
     </div>) : (
       <div>
