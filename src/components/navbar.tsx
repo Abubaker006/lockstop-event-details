@@ -12,7 +12,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="bg-orange-600 text-white p-4 fixed top-0 left-0 w-full z-50 shadow-md">
+      <nav className="bg-orange-600 text-white p-4 fixed top-0 left-0 w-full z-50 shadow-md mb-7 border-2 border-amber-600">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           {/* Logo */}
           <div className="text-2xl font-bold">

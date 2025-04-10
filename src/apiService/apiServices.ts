@@ -2,7 +2,7 @@ import axios from "axios";
 
 const apiEndpoint = process.env.NEXT_PUBLIC_SERVER_URL;
 
-interface APIRESPONSE {
+export interface APIRESPONSE {
   status: string | number;
   message?: string;
   data?: {
@@ -13,6 +13,15 @@ interface APIRESPONSE {
     endDate: Date | null;
   };
 }
+export interface APIRESPONSELOGIN {
+  success: boolean;
+  message?: string;
+  data?: {
+    accessToken?: string | undefined; // Assuming a token is returned on successful verification
+    userId?: string;
+  };
+  error?: string;
+}
 
 export interface CustomErrorResponse {
   error: {
@@ -22,6 +31,13 @@ export interface CustomErrorResponse {
     timestamp: string;
     path: string;
   };
+}
+export interface UpdateEventPayload {
+  eventId: string | number;
+  eventTitle: string;
+  eventLocation: string;
+  startDate: Date | null;
+  endDate: Date | null;
 }
 
 export const postEventDetails = async (
@@ -87,14 +103,6 @@ export const deleteEvent = async (id: string) => {
   }
 };
 
-export interface UpdateEventPayload {
-  eventId: string | number;
-  eventTitle: string;
-  eventLocation: string;
-  startDate: Date | null;
-  endDate: Date | null;
-}
-
 export const updateEvent = async (id: string, payload: UpdateEventPayload) => {
   try {
     const response = await axios.put<APIRESPONSE>(
@@ -105,6 +113,37 @@ export const updateEvent = async (id: string, payload: UpdateEventPayload) => {
           "Content-Type": "application/json",
         },
       }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const requestOtp = async (phoneNumber: string): Promise<APIRESPONSELOGIN> => {
+  try {
+    const payload = { phone_number: phoneNumber };
+    const response = await axios.post<APIRESPONSELOGIN>(
+      `${apiEndpoint}/api/v1/login`,
+      payload,
+      { headers: { 'Content-Type': 'application/json' } }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const verifyOtp = async (
+  phoneNumber: string,
+  otp: string
+): Promise<APIRESPONSELOGIN> => {
+  try {
+    const payload = { phone_number: phoneNumber, otp };
+    const response = await axios.post<APIRESPONSELOGIN>(
+      `${apiEndpoint}/api/v1/verify`,
+      payload,
+      { headers: { 'Content-Type': 'application/json' } }
     );
     return response.data;
   } catch (error) {
