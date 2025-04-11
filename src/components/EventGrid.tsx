@@ -393,7 +393,7 @@ const EventGrid = () => {
               onClick={() => {
                 handleAddEventModal();
               }}
-              className="bg-[#F54A00] text-white px-4 py-2 rounded-md hover:bg-[#EA580C] transition sm:px-5 sm:py-3 lg:px-6 lg:py-3 w-full sm:w-auto"
+              className="bg-[#F54A00] text-white px-4 py-2 rounded-md hover:bg-[#EA580C] transition my-4 sm:px-5 sm:py-3 lg:px-6 lg:py-3 w-full sm:w-auto"
             >
               Add Event
             </button>
@@ -420,12 +420,12 @@ const EventGrid = () => {
         </div>
       ) : (
         <>
-          <div className="flex flex-wrap justify-end mb-4 gap-3">
+          <div className="flex flex-wrap justify-center mb-4 gap-3">
             <button
               onClick={() => {
                 handleAddEventModal();
               }}
-              className="bg-[#F54A00] text-white text-md px-4 py-2 rounded-md hover:bg-[#EA580C] transition sm:px-5 sm:py-3 w-full sm:w-auto"
+              className="bg-[#F54A00] text-white text-md px-4 py-2 rounded-md hover:bg-[#EA580C] transition sm:px-5 sm:py-3 my-4 w-[90%] sm:w-auto"
             >
               Add Event
             </button>
@@ -480,6 +480,7 @@ const EventGrid = () => {
         title="Update Event"
         open={isUpdateModalVisible}
         onCancel={handleModalCancel}
+        width={'800px'}
         footer={null}
         centered
       >
@@ -512,7 +513,7 @@ const EventGrid = () => {
             onSubmit={handleFormSubmit}
           >
             {({ values, isSubmitting, setFieldValue }) => (
-              <FormikForm className="max-w-lg mx-auto">
+              <FormikForm className=" w-full mx-auto">
                 <div className="mb-4">
                   <label
                     htmlFor="eventId"
@@ -583,7 +584,7 @@ const EventGrid = () => {
                           onChange={(date) => setFieldValue("startDate", date)}
                           icon={
                             <Calendar
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                              className="absolute md:-right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
                               size={20}
                             />
                           }
@@ -591,7 +592,7 @@ const EventGrid = () => {
                           placeholderText="mm/dd/yyyy"
                           dateFormat="MM/dd/yyyy"
                           minDate={new Date()}
-                          className="w-full max-w-md h-11 border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 pr-10 focus:outline-none focus:border-[#d1e0e0] focus:ring-0"
+                          className="w-[100%] md:w-[187%] max-w-md h-11 border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 pr-10 focus:outline-none focus:border-[#d1e0e0] focus:ring-0"
                         />
                       </div>
                       <ErrorMessage
@@ -637,7 +638,7 @@ const EventGrid = () => {
                           onChange={(date) => setFieldValue("endDate", date)}
                           icon={
                             <Calendar
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                              className="absolute md:-right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
                               size={20}
                             />
                           }
@@ -645,7 +646,7 @@ const EventGrid = () => {
                           placeholderText="mm/dd/yyyy"
                           dateFormat="MM/dd/yyyy"
                           minDate={values.startDate || new Date()}
-                          className="w-full max-w-md h-11 border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 pr-10 focus:outline-none focus:border-[#d1e0e0] focus:ring-0"
+                          className="w-[100%] md:w-[183%] h-11 border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 pr-10 focus:outline-none focus:border-[#d1e0e0] focus:ring-0"
                         />
                       </div>
                       <ErrorMessage

@@ -208,7 +208,7 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
                       placeholderText=""
                       dateFormat="MM/dd/yyyy"
                       minDate={new Date()}
-                      className="w-[100%] md:w-[130%] h-11 bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                      className="w-[100%] md:w-[187%] h-11 bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
                     />
                   </div>
                   <ErrorMessage
@@ -236,7 +236,7 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
                       placeholderText=""
                       dateFormat="MM/dd/yyyy"
                       minDate={values.startDate || new Date()}
-                      className="w-[100%] sm:w-[130%] md:w-[50px] h-11 bg-[#FCFCFC] rounded-md border border-[#d1e0e0] text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                      className="w-[100%] sm:w-[130%] md:w-[187%] h-11 bg-[#FCFCFC] rounded-md border border-[#d1e0e0] text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
                     />
                   </div>
                   <ErrorMessage
