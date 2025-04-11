@@ -14,7 +14,13 @@ import { Calendar } from "lucide-react";
 import { Modal, Button } from "antd";
 import { formatDate, formatTime } from "@/utils/formatters";
 import QRCode from "react-qr-code";
-import { Trash2, Pencil, QrCode } from "lucide-react";
+import {
+  Trash2,
+  Pencil,
+  QrCode,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import EventDetailsForm from "@/components/EvenDetailsForm";
 import {
@@ -33,6 +39,7 @@ import {
   ColDef,
 } from "ag-grid-community";
 import "ag-grid-community/styles/ag-theme-alpine.css";
+import { EventCard } from "./EventCard";
 interface Event {
   _id: string;
   eventId: string;
@@ -49,6 +56,8 @@ interface EventDetailsFormValues {
   startDate: Date | null;
   endDate: Date | null;
   eventId: string;
+  endTime?: string;
+  startTime?: string;
 }
 
 interface QRCodeData {
@@ -73,8 +82,18 @@ const EventGrid = () => {
     useState<boolean>(false);
   const [isAddEventFormVisible, setIsAddEventFormVisible] =
     useState<boolean>(false);
-  const [isFormQrCodeVisible, setIsFormQrCodeVisible] =
-    useState<boolean>(true);
+  const [isFormQrCodeVisible, setIsFormQrCodeVisible] = useState<boolean>(true);
+  const [screenWidth, setScreenWidth] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  // Calculate paginated data
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = rowData.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(rowData.length / itemsPerPage);
+
+  // Pagination handler
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const isEventExpired = (endDate: string | Date): boolean => {
     if (!endDate) return true;
@@ -328,7 +347,16 @@ const EventGrid = () => {
     setIsAddEventFormVisible(false);
     setIsFormQrCodeVisible(false);
   };
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setScreenWidth(window.innerWidth);
 
+      const handleResize = () => setScreenWidth(window.innerWidth);
+      window.addEventListener("resize", handleResize);
+
+      return () => window.removeEventListener("resize", handleResize);
+    }
+  }, []);
   useEffect(() => {
     if (selectedRow) {
       setSelectedRow((prevSelectedRow) => {
@@ -355,39 +383,98 @@ const EventGrid = () => {
       });
     }
   }, [selectedRow]);
+  if (screenWidth === null) return null;
   return (
     <>
-      <div className="max-w-6xl mx-auto w-full pb-12">
-        <div className="flex flex-wrap justify-end mb-4 gap-3">
-          <button
-            onClick={() => {
-              handleAddEventModal();
-            }}
-            className="bg-[#F54A00] text-white px-4 py-2 rounded-md hover:bg-[#EA580C] transition sm:px-5 sm:py-3 lg:px-6 lg:py-3 w-full sm:w-auto"
-          >
-            Add Event
-          </button>
-        </div>
+      {screenWidth > 768 ? (
+        <div className="max-w-6xl mx-auto w-full pb-12">
+          <div className="flex flex-wrap justify-end mb-4 gap-3">
+            <button
+              onClick={() => {
+                handleAddEventModal();
+              }}
+              className="bg-[#F54A00] text-white px-4 py-2 rounded-md hover:bg-[#EA580C] transition sm:px-5 sm:py-3 lg:px-6 lg:py-3 w-full sm:w-auto"
+            >
+              Add Event
+            </button>
+          </div>
 
-        <div
-          className="ag-theme-alpine ag-theme-custom rounded-lg"
-          style={{
-            width: "100%",
-            height: "580px",
-          }}
-        >
-          <AgGridReact<Event>
-            rowData={rowData}
-            columnDefs={columnDefs}
-            pagination={true}
-            paginationPageSize={11}
-            rowSelection={{ mode: "singleRow" }}
-            onGridReady={onGridReady}
-            onSelectionChanged={onSelectionChanged}
-            paginationPageSizeSelector={[10, 20, 50]}
-          />
+          <div
+            className="ag-theme-alpine ag-theme-custom rounded-lg"
+            style={{
+              width: "100%",
+              height: "580px",
+            }}
+          >
+            <AgGridReact<Event>
+              rowData={rowData}
+              columnDefs={columnDefs}
+              pagination={true}
+              paginationPageSize={11}
+              rowSelection={{ mode: "singleRow" }}
+              onGridReady={onGridReady}
+              onSelectionChanged={onSelectionChanged}
+              paginationPageSizeSelector={[10, 20, 50]}
+            />
+          </div>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="flex flex-wrap justify-end mb-4 gap-3">
+            <button
+              onClick={() => {
+                handleAddEventModal();
+              }}
+              className="bg-[#F54A00] text-white text-md px-4 py-2 rounded-md hover:bg-[#EA580C] transition sm:px-5 sm:py-3 w-full sm:w-auto"
+            >
+              Add Event
+            </button>
+          </div>
+          <div className="flex flex-col justify-center items-center gap-4">
+            {currentItems.map((event) => (
+              <EventCard
+                key={event._id}
+                event={event}
+                handleGenerateQrCode={handleGenerateQrCode}
+                handleUpdate={handleUpdate}
+                handleDelete={handleDelete}
+              />
+            ))}
+            {/* Pagination Controls */}
+            <div className="flex gap-2 py-4 ">
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 bg-[#e84c23] text-white rounded disabled:bg-gray-300"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => paginate(page)}
+                    className={`px-3 py-1 rounded ${
+                      currentPage === page
+                        ? "bg-[#e84c23] text-white"
+                        : "bg-gray-200 text-gray-700"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 bg-[#e84c23] text-white rounded disabled:bg-gray-300"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       <Modal
         title="Update Event"
@@ -399,17 +486,25 @@ const EventGrid = () => {
         {selectedRow && (
           <Formik
             enableReinitialize={true}
-            initialValues={{
-              eventId: selectedRow.eventId,
-              title: selectedRow.title || "",
-              location: selectedRow.location || "",
-              startDate: selectedRow.startDate
-                ? new Date(selectedRow.startDate)
-                : null,
-              endDate: selectedRow.endDate
-                ? new Date(selectedRow.endDate)
-                : null,
-            }}
+            initialValues={
+              {
+                eventId: selectedRow.eventId,
+                title: selectedRow.title || "",
+                location: selectedRow.location || "",
+                startDate: selectedRow.startDate
+                  ? new Date(selectedRow.startDate)
+                  : null,
+                endDate: selectedRow.endDate
+                  ? new Date(selectedRow.endDate)
+                  : null,
+                startTime: selectedRow.startDate
+                  ? new Date(selectedRow.startDate).toTimeString().slice(0, 5)
+                  : "",
+                endTime: selectedRow.endDate
+                  ? new Date(selectedRow.endDate).toTimeString().slice(0, 5)
+                  : "",
+              } as EventDetailsFormValues
+            }
             validate={validate}
             validateOnChange={true}
             validateOnBlur={true}
@@ -505,7 +600,32 @@ const EventGrid = () => {
                         className="text-red-500 text-sm mt-1"
                       />
                     </div>
-
+                    {/* Start Time */}
+                    <div className="w-full">
+                      <label className="text-sm text-gray-700 block mb-1">
+                        Start Time
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="time"
+                          name="startTime"
+                          value={values.startTime || ""}
+                          onChange={(e) =>
+                            setFieldValue("startTime", e.target.value)
+                          }
+                          className="w-full h-11 border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                        />
+                      </div>
+                      <ErrorMessage
+                        name="startTime"
+                        component="div"
+                        className="text-red-500 text-sm mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <div className="flex flex-row justify-between gap-4">
                     {/* End Date */}
                     <div className="w-full">
                       <label className="text-sm text-gray-700 block mb-1">
@@ -530,6 +650,28 @@ const EventGrid = () => {
                       </div>
                       <ErrorMessage
                         name="endDate"
+                        component="div"
+                        className="text-red-500 text-sm mt-1"
+                      />
+                    </div>
+                    {/* End Time */}
+                    <div className="w-full">
+                      <label className="text-sm text-gray-700 block mb-1">
+                        End Time <span className="text-red-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="time"
+                          name="endTime"
+                          value={values.endTime || ""}
+                          onChange={(e) =>
+                            setFieldValue("endTime", e.target.value)
+                          }
+                          className="w-full h-11 border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                        />
+                      </div>
+                      <ErrorMessage
+                        name="endTime"
                         component="div"
                         className="text-red-500 text-sm mt-1"
                       />
@@ -587,8 +729,11 @@ const EventGrid = () => {
         width={"800px"}
       >
         <hr className="opacity-40 py-3" />
-        <div className="w-full border-2 border-red-500">
-          <EventDetailsForm disableQRcode={isFormQrCodeVisible} handleRefreshData={fetchData} />
+        <div className="w-full">
+          <EventDetailsForm
+            disableQRcode={isFormQrCodeVisible}
+            handleRefreshData={fetchData}
+          />
         </div>
       </Modal>
     </>

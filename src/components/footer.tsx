@@ -4,7 +4,7 @@ import VideoPlayer from './VedioPlayer';
 
 const Footer = () => {
     return (
-        <footer className="bg-[#F3F4F6] text-center py-6 pb-10">
+        <footer className="bg-[#F3F4F6] text-center  pb-10">
             <div className="w-full bg-[#FEEFEA] rounded-lg px-4 py-10">
                 <div className="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto w-full">
                     {/* Left Section - Text */}

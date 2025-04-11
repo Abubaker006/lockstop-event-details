@@ -1,341 +1,3 @@
-// "use client";
-// import React, { useEffect, useState } from "react";
-// import { Formik, Form, Field, ErrorMessage } from "formik";
-// import { postEventDetails } from "@/apiService/apiServices";
-// import axios, { AxiosError } from "axios";
-// import { Calendar } from "lucide-react";
-// import DatePicker from "react-datepicker";
-// import "react-datepicker/dist/react-datepicker.css";
-// import { toast } from "react-toastify";
-// import { FormikHelpers } from "formik";
-// import { validate } from "@/utils/schema";
-// import { CustomErrorResponse } from "@/apiService/apiServices";
-// import QRCode from "react-qr-code";
-// import { formatDate, formatTime } from "@/utils/formatters";
-
-// export interface EventDetailsFormValues {
-//   title?: string;
-//   location?: string;
-//   startDate?: Date | null;
-//   endDate?: Date | null;
-//   eventId: string | number;
-// }
-// interface QRCodeData {
-//   scanType: string;
-//   startDate: string | null;
-//   startTime: string | null;
-//   endDate: string | null;
-//   endTime: string | null;
-//   timezone: string;
-// }
-
-// interface EventDetailsFormProps {
-//   handleRefreshData: () => void;
-//   disableQRcode: boolean;
-// }
-// const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
-//   handleRefreshData,disableQRcode
-// }) => {
-//   const [qrCodeValue, setQrCodeValue] = useState<string>("");
-//   const [isRenderingForm, setIsRenderingForm] = useState<boolean>(true);
-
-//   const handleSubmitSuccess = (qrValue: string) => {
-//     setQrCodeValue(qrValue);
-//     setIsRenderingForm(false);
-//     handleRefreshData();
-//   };
-
-//   const handleFormSubmit = async (
-//     values: EventDetailsFormValues,
-//     actions: FormikHelpers<EventDetailsFormValues>
-//   ) => {
-//     try {
-//       const { eventId, title, location, startDate, endDate } = values;
-//       if (!eventId || !endDate) {
-//         toast.error("Please fill all required fields.");
-//         actions.resetForm();
-//         return;
-//       }
-
-//       const response = await postEventDetails(
-//         eventId,
-//         title || "",
-//         location || "",
-//         startDate || null,
-//         endDate
-//       );
-
-//       const { data } = response;
-//       const formattedStartDate: string | null = data?.startDate
-//         ? formatDate(data?.startDate)
-//         : null;
-//       const formattedStartTime: string | null = data?.startDate
-//         ? formatTime(data?.startDate)
-//         : null;
-
-//       const formattedEndDate: string | null = data?.endDate
-//         ? formatDate(data.endDate)
-//         : null;
-//       const formattedEndTime: string | null = data?.endDate
-//         ? formatTime(data.endDate)
-//         : null;
-
-//       const qrData: QRCodeData = {
-//         scanType: "valetAdmin",
-//         startDate: formattedStartDate || null,
-//         startTime: formattedStartTime || null,
-//         endDate: formattedEndDate || null,
-//         endTime: formattedEndTime || null,
-//         timezone: "America/Chicago",
-//       };
-//       const qrValue: string = JSON.stringify(qrData);
-//       handleSubmitSuccess(qrValue);
-//       toast.success("Event details submitted successfully!");
-//       actions.resetForm();
-//     } catch (error) {
-//       if (axios.isAxiosError(error)) {
-//         const axiosError = error as AxiosError<CustomErrorResponse>;
-//         if (axiosError.response?.data?.error) {
-//           const customError = axiosError.response.data.error;
-//           console.error("Custom API Error:", customError);
-//           toast.error(customError.description);
-//         }
-//       } else {
-//         toast.error("An error occurred while submitting the form.");
-//       }
-//     }
-//   };
-//   useEffect(()=>{
-//     if(disableQRcode) return;
-//     setQrCodeValue("");
-//     setIsRenderingForm(true);
-//   },[disableQRcode])
-
-//   return (
-//     <>
-//       {isRenderingForm ? (
-//         <>
-//           <Formik
-//             initialValues={
-//               {
-//                 title: "",
-//                 location: "",
-//                 mode: "",
-//                 startDate: null,
-//                 endDate: null,
-//                 eventId: "",
-//               } as EventDetailsFormValues
-//             }
-//             validate={validate}
-//             validateOnChange={true}
-//             validateOnBlur={true}
-//             validateOnMount={true}
-//             onSubmit={handleFormSubmit}
-//           >
-//             {({ values, isSubmitting, setFieldValue }) => (
-//               <Form className="w-full mx-auto">
-//                 <div className="mb-4">
-//                   <label
-//                     htmlFor="eventId"
-//                     className="block text-gray-700 font-medium"
-//                   >
-//                     Event Id <span className="text-red-500">*</span>
-//                   </label>
-//                   <Field
-//                     type="text"
-//                     name="eventId"
-//                     id="eventId"
-//                     className="w-full bg-[#FCFCFC] p-2 border border-[#d1e0e0] rounded focus:outline-none focus:border-[#d1e0e0]"
-//                   />
-//                   <ErrorMessage
-//                     name="eventId"
-//                     component="div"
-//                     className="text-red-500 text-sm mt-1"
-//                   />
-//                 </div>
-
-//                 <div className="mb-4">
-//                   <label
-//                     htmlFor="title"
-//                     className="block text-gray-700 font-medium"
-//                   >
-//                     Title
-//                   </label>
-//                   <Field
-//                     type="text"
-//                     name="title"
-//                     id="title"
-//                     className="w-full p-2 border border-[#d1e0e0] bg-[#FCFCFC] rounded focus:outline-none focus:border-[#d1e0e0]"
-//                   />
-//                   <ErrorMessage
-//                     name="title"
-//                     component="div"
-//                     className="text-red-500 text-sm mt-1"
-//                   />
-//                 </div>
-//                 <div className="mb-4 flex justify-between gap-12 ">
-//                   <div className="flex-1 flex flex-col">
-//                     <label className="text-sm text-gray-700 block mb-1">
-//                       Start Date
-//                     </label>
-//                     <div className="relative">
-//                       <DatePicker
-//                         selected={values.startDate}
-//                         onChange={(date) => setFieldValue("startDate", date)}
-//                         icon={
-//                           <Calendar
-//                             className="absolute -right-[75%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-//                             size={20}
-//                           />
-//                         }
-//                         showIcon={true}
-//                         placeholderText=""
-//                         dateFormat="MM/dd/yyyy"
-//                         minDate={new Date()}
-//                         className="w-[180%] flex-1 h-11 border bg-[#FCFCFC] border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 pr-10 focus:outline-none focus:border-[#d1e0e0] focus:ring-0"
-//                       />
-//                     </div>
-//                     <ErrorMessage
-//                       name="startDate"
-//                       component="div"
-//                       className="text-red-500 text-sm mt-1"
-//                     />
-//                   </div>
-
-//                   {/* End Date */}
-//                   <div className="flex-1 flex flex-col">
-//                     <label className="text-sm text-gray-700 block mb-1">
-//                       End Date <span className="text-red-500">*</span>
-//                     </label>
-//                     <div className=" relative">
-//                       <DatePicker
-//                         selected={values.endDate}
-//                         onChange={(date) => setFieldValue("endDate", date)}
-//                         icon={
-//                           <Calendar
-//                             className="absolute -right-[75%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-//                             size={20}
-//                           />
-//                         }
-//                         showIcon={true}
-//                         placeholderText=""
-//                         dateFormat="MM/dd/yyyy"
-//                         minDate={values.startDate || new Date()}
-//                         className="w-[180%]  flex-1 h-11 bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 pr-10 focus:outline-none focus:border-[#d1e0e0] focus:ring-0"
-//                       />
-//                     </div>
-//                     <ErrorMessage
-//                       name="endDate"
-//                       component="div"
-//                       className="text-red-500 text-sm mt-1"
-//                     />
-//                   </div>
-//                 </div>
-//                 <div className="mb-4 flex justify-between gap-12 ">
-//                   <div className="w-full">
-//                     <label className="text-sm text-gray-700 block mb-1">
-//                       Start Time <span className="text-red-500">*</span>
-//                     </label>
-//                     <div className="relative border-2 h-11 flex items-stretch">
-//                       <input
-//                         type="time"
-//                         name="endTime"
-//                         value={values.endTime || ""}
-//                         onChange={(e) =>
-//                           setFieldValue("endTime", e.target.value)
-//                         }
-//                         className="w-full h-full rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
-//                       />
-//                     </div>
-//                     <ErrorMessage
-//                       name="endTime"
-//                       component="div"
-//                       className="text-red-500 text-sm mt-1"
-//                     />
-//                   </div>
-
-//                   <div className="w-full">
-//                     <label className="text-sm text-gray-700 block mb-1">
-//                       End Time <span className="text-red-500">*</span>
-//                     </label>
-//                     <div className="relative border-2 h-11 flex items-stretch">
-//                       <input
-//                         type="time"
-//                         name="endTime"
-//                         value={values.endTime || ""}
-//                         onChange={(e) =>
-//                           setFieldValue("endTime", e.target.value)
-//                         }
-//                         className="w-full h-full rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
-//                       />
-//                     </div>
-//                     <ErrorMessage
-//                       name="endTime"
-//                       component="div"
-//                       className="text-red-500 text-sm mt-1"
-//                     />
-//                   </div>
-//                 </div>
-//                 <div className="mb-4">
-//                   <label
-//                     htmlFor="location"
-//                     className="block text-gray-700 font-medium"
-//                   >
-//                     Location
-//                   </label>
-//                   <Field
-//                     as="textarea"
-//                     name="location"
-//                     id="location"
-//                     className="w-full p-2 h-[100px] bg-[#FCFCFC] border border-[#d1e0e0] rounded focus:outline-none focus:border-[#d1e0e0]"
-//                   />
-//                   <ErrorMessage
-//                     name="location"
-//                     component="div"
-//                     className="text-red-500 text-sm mt-1"
-//                   />
-//                 </div>
-
-//                 <button
-//                   type="submit"
-//                   className="w-full bg-[#F54A00] text-white font-semibold py-2 px-4 rounded hover:bg-orange-600 transition "
-//                   disabled={isSubmitting}
-//                 >
-//                   {isSubmitting ? "Submitting..." : "Submit"}
-//                 </button>
-//               </Form>
-//             )}
-//           </Formik>
-//         </>
-//       ) : (
-//         <>
-//           {qrCodeValue && (
-//             <div className="mt-6 text-center relative">
-//               <h3 className="text-lg font-semibold mb-2">Event QR Code</h3>
-//               <div className="inline-block p-4 bg-white rounded">
-//                 <QRCode
-//                   value={qrCodeValue}
-//                   size={300}
-//                   bgColor="#FFE6E0"
-//                   fgColor=" #F54A00"
-//                   level="H"
-//                   style={{
-//                     padding: 20,
-//                     borderRadius: 8,
-//                     background: "#FFE6E0",
-//                   }}
-//                 />
-//               </div>
-//             </div>
-//           )}
-//         </>
-//       )}
-//     </>
-//   );
-// };
-
-// export default EventDetailsForm;
-
 "use client";
 import React, { useEffect, useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -527,26 +189,26 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
                 />
               </div>
 
-              <div className="mb-4 flex flex-row gap-12">
+              <div className="mb-4 w-[100%] flex flex-row gap-6">
                 <div className="w-full">
                   <label className="text-sm text-gray-700 block mb-1">
                     Start Date
                   </label>
-                  <div className="relative border-2 h-11 flex items-stretch">
+                  <div className="relative  flex items-stretch">
                     <DatePicker
                       selected={values.startDate}
                       onChange={(date) => setFieldValue("startDate", date)}
                       icon={
                         <Calendar
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                          className="absolute  -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
                           size={20}
                         />
                       }
                       showIcon={true}
-                      placeholderText="mm/dd/yyyy"
+                      placeholderText=""
                       dateFormat="MM/dd/yyyy"
                       minDate={new Date()}
-                      className="w-full h-full bg-[#FCFCFC] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                      className="w-[100%] md:w-[130%] h-11 bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
                     />
                   </div>
                   <ErrorMessage
@@ -560,21 +222,21 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
                   <label className="text-sm text-gray-700 block mb-1">
                     End Date <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative border-2 h-11 flex items-stretch">
+                  <div className="relative h-11 flex items-stretch">
                     <DatePicker
                       selected={values.endDate}
                       onChange={(date) => setFieldValue("endDate", date)}
                       icon={
                         <Calendar
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                          className="absolute -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
                           size={20}
                         />
                       }
                       showIcon={true}
-                      placeholderText="mm/dd/yyyy"
+                      placeholderText=""
                       dateFormat="MM/dd/yyyy"
                       minDate={values.startDate || new Date()}
-                      className="w-full h-full bg-[#FCFCFC] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                      className="w-[100%] sm:w-[130%] md:w-[50px] h-11 bg-[#FCFCFC] rounded-md border border-[#d1e0e0] text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
                     />
                   </div>
                   <ErrorMessage
@@ -585,12 +247,12 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
                 </div>
               </div>
 
-              <div className="mb-4 flex flex-row gap-12">
+              <div className="mb-4 w-[100%] flex flex-row gap-6">
                 <div className="w-full">
                   <label className="text-sm text-gray-700 block mb-1">
                     Start Time
                   </label>
-                  <div className="relative border-2 h-11 flex items-stretch">
+                  <div className="relative h-11 flex items-stretch">
                     <input
                       type="time"
                       name="startTime"
@@ -598,7 +260,7 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
                       onChange={(e) =>
                         setFieldValue("startTime", e.target.value)
                       }
-                      className="w-full h-full bg-[#FCFCFC] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                      className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
                     />
                   </div>
                   <ErrorMessage
@@ -612,13 +274,13 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
                   <label className="text-sm text-gray-700 block mb-1">
                     End Time <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative border-2 h-11 flex items-stretch">
+                  <div className="relative h-11 flex items-stretch">
                     <input
                       type="time"
                       name="endTime"
                       value={values.endTime || ""}
                       onChange={(e) => setFieldValue("endTime", e.target.value)}
-                      className="w-full h-full bg-[#FCFCFC] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                      className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
                     />
                   </div>
                   <ErrorMessage

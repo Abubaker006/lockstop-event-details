@@ -68,16 +68,15 @@ const SignInForm = () => {
     setFullPhone(phoneNumber);
     try {
       const response: APIRESPONSELOGIN = await requestOtp(phoneNumber);
-      if (response?.success) {
+      if (response) {
         setisOTPVisible(true);
-      } else {
-        toast(response.error || "Failed to send OTP.");
+        toast.success("OTP sent successfully!");
       }
     } catch (error) {
-      console.error('Error while sending OTP',error);
+      console.error("Error while sending OTP", error);
       toast.error("An error occurred while sending the OTP.");
     } finally {
-      setResendCooldown(10);
+      setResendCooldown(30);
       setisOTPVisible(true);
       resetForm();
     }
@@ -148,15 +147,13 @@ const SignInForm = () => {
     if (resendCooldown > 0) return;
     try {
       const response: APIRESPONSELOGIN = await requestOtp(fullPhone); // Reuse requestOtp for resend
-      if (response.success) {
-        toast("OTP resent successfully!");
+      if (response) {
+        toast.success("OTP resent successfully!");
         setOtp(Array(4).fill("")); // Reset OTP inputs
-      } else {
-        toast(response.error || "Failed to resend OTP.");
-      }
+      } 
     } catch (error) {
       const axiosError = error as AxiosError<{ message?: string }>;
-      toast(
+      toast.error(
         axiosError.response?.data?.message ||
           "An error occurred. Please try again."
       );
@@ -234,7 +231,7 @@ const SignInForm = () => {
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-[#F54A00] text-white font-semibold py-2 px-4 rounded hover:bg-orange-600 transition "
+                  className="w-full mt-5 bg-[#F54A00] text-white font-semibold py-2 px-4 rounded hover:bg-orange-600 transition "
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Submitting..." : "Submit"}
@@ -305,7 +302,7 @@ const SignInForm = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-[70%] bg-orange-600 m-auto justify-center flex items-center text-center hover:bg-orange-700 text-white py-2 rounded-md font-semibold"
+                    className="w-[55%] bg-orange-600 m-auto justify-center flex items-center text-center hover:bg-orange-700 text-white py-2 rounded-md font-semibold"
                   >
                     Verify
                   </button>
@@ -316,9 +313,9 @@ const SignInForm = () => {
                       type="button"
                       onClick={handleResendOtp}
                       disabled={resendCooldown > 0} // Disable during cooldown
-                      className={`text-blue-600 hover:underline ${
+                      className={`text-[#e84c23] hover:underline ${
                         resendCooldown > 0
-                          ? "opacity-50 cursor-not-allowed"
+                          ? "opacity-50  cursor-not-allowed"
                           : "cursor-pointer"
                       }`}
                     >

@@ -39,7 +39,7 @@ export default function ClientLayout({
         <Spin indicator={<LoadingOutlined style={{ fontSize: 80, color: "#ef4444" }} spin allowFullScreen={true} />} />
       </Flex>
     </div>) : (
-      <div>
+      <div >
         <Navbar />
         <div className="mt-20">
           {children}
