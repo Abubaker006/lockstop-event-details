@@ -3,6 +3,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --toastify-color-info: #0082FC;
+  --toastify-color-success: #387D21;
+  --toastify-color-warning: #f1c40f;
+  --toastify-color-error: #E84C23;
+
+ 
+  --toastify-icon-color-info: var(--toastify-color-info);
+  --toastify-icon-color-success: var(--toastify-color-success);
+  --toastify-icon-color-warning: var(--toastify-color-warning);
+  --toastify-icon-color-error: var(--toastify-color-error);
 }
 
 @theme inline {
@@ -68,7 +78,7 @@ body {
 .ag-theme-custom .ag-cell {
   display: flex;
   align-items: center;
-  justify-content: center; /* Center text in header and cells */
+  justify-content: flex-start; /* Center text in header and cells */
 }
 
 /* Left-align specific columns (e.g., Title, Location) */
@@ -81,7 +91,7 @@ body {
 
 /* Icon styling in the Action column */
 .ag-theme-custom .ag-cell[aria-colindex="7"] .ag-icon {
-  font-size: 16px;
+  font-size: 60px;
 }
 
 /* Style for QR scan and Edit icons (blue) */

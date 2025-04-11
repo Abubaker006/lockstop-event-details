@@ -21,7 +21,6 @@ export default function ClientLayout({
   useEffect(() => {
     setLoading(true);
     const token = Cookies.get("auth_token");
-    console.log('token is', token);
 
     if (token) {
       router.push("/event-details");

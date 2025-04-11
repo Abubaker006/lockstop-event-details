@@ -73,6 +73,8 @@ const EventGrid = () => {
     useState<boolean>(false);
   const [isAddEventFormVisible, setIsAddEventFormVisible] =
     useState<boolean>(false);
+  const [isFormQrCodeVisible, setIsFormQrCodeVisible] =
+    useState<boolean>(true);
 
   const isEventExpired = (endDate: string | Date): boolean => {
     if (!endDate) return true;
@@ -87,13 +89,23 @@ const EventGrid = () => {
       field: "eventId",
       sortable: true,
       filter: true,
+      // wrapText:true,
+      initialWidth: 180,
+      // maxWidth: 100,
     },
-    { headerName: "Title", field: "title", sortable: true, filter: true },
+    {
+      headerName: "Title",
+      field: "title",
+      sortable: true,
+      filter: true,
+      initialWidth: 180,
+    },
     {
       headerName: "Location",
       field: "location",
       sortable: false,
       filter: false,
+      initialWidth: 150,
     },
     {
       headerName: "Start Date",
@@ -102,6 +114,7 @@ const EventGrid = () => {
         value ? new Date(value).toLocaleString() : "N/A",
       sortable: false,
       filter: false,
+      initialWidth: 190,
     },
     {
       headerName: "End Date",
@@ -110,12 +123,14 @@ const EventGrid = () => {
         value ? new Date(value).toLocaleString() : "N/A",
       sortable: false,
       filter: false,
+      initialWidth: 190,
     },
     {
       headerName: "Actions",
       field: "_id",
       sortable: false,
       filter: false,
+      initialWidth: 100,
       cellRenderer: (params: ICellRendererParams<Event>) => {
         return (
           <div className="flex gap-2">
@@ -145,10 +160,11 @@ const EventGrid = () => {
       },
     },
     {
-      headerName: "Gen QR Code",
+      headerName: "QR Code",
       field: "_id",
       sortable: false,
       filter: false,
+      initialWidth: 100,
       cellRenderer: (params: ICellRendererParams<Event>) => {
         return (
           <button
@@ -173,6 +189,7 @@ const EventGrid = () => {
       }
     } catch (error) {
       console.error("Error fetching events:", error);
+      toast.error("Error fetching events.");
     }
   };
 
@@ -198,14 +215,13 @@ const EventGrid = () => {
     }
 
     try {
-      console.log("Deleting event:", row);
       const response = await deleteEvent(row._id);
-      if (response.status === 200) {
+      if (response) {
         toast.success("Event deleted successfully.");
         const updatedRowData = rowData.filter(
-          (row) => row.eventId !== row.eventId
+          (dataRow: Event) => dataRow.eventId !== row.eventId
         );
-        setRowData(updatedRowData);
+        setRowData(updatedRowData as Event[]);
         gridApi?.deselectAll();
         setSelectedRow(null);
       } else {
@@ -249,8 +265,6 @@ const EventGrid = () => {
         startDate: values.startDate ?? null,
         endDate: values.endDate ?? null,
       };
-
-      console.log("Updating event with data:", updatedEventData);
 
       const response = await updateEvent(selectedRow._id, updatedEventData);
       if (response.status === 200) {
@@ -312,6 +326,7 @@ const EventGrid = () => {
 
   const handleCancelAddEventModal = () => {
     setIsAddEventFormVisible(false);
+    setIsFormQrCodeVisible(false);
   };
 
   useEffect(() => {
@@ -569,10 +584,11 @@ const EventGrid = () => {
         onCancel={handleCancelAddEventModal}
         footer={null}
         centered
+        width={"800px"}
       >
         <hr className="opacity-40 py-3" />
-        <div className="w-full">
-          <EventDetailsForm />
+        <div className="w-full border-2 border-red-500">
+          <EventDetailsForm disableQRcode={isFormQrCodeVisible} handleRefreshData={fetchData} />
         </div>
       </Modal>
     </>

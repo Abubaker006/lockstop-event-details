@@ -66,7 +66,6 @@ const SignInForm = () => {
   ) => {
     const phoneNumber = `${values.countryCode}${values.phoneNumber}`;
     setFullPhone(phoneNumber);
-    console.log(`Submitted phone number: ${phoneNumber}`);
     try {
       const response: APIRESPONSELOGIN = await requestOtp(phoneNumber);
       if (response?.success) {
@@ -75,8 +74,8 @@ const SignInForm = () => {
         toast(response.error || "Failed to send OTP.");
       }
     } catch (error) {
-      console.error(error);
-      toast.error("An error occurred while submitting the form.");
+      console.error('Error while sending OTP',error);
+      toast.error("An error occurred while sending the OTP.");
     } finally {
       setResendCooldown(10);
       setisOTPVisible(true);
@@ -132,7 +131,6 @@ const SignInForm = () => {
           const axiosError = error as AxiosError<CustomErrorResponse>;
           if (axiosError.response?.data?.error) {
             const customError = axiosError.response.data.error;
-            console.error("Custom API Error:", customError);
             toast.error(customError.description);
           }
         } else {

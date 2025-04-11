@@ -8,7 +8,6 @@ export const validate = (values: EventDetailsFormValues) => {
     errors.eventId = "Event ID is required.";
   }
   if (!values.endDate) {
-    console.log("endDate is null:", values.endDate);
     errors.endDate = "End Date is required.";
   }
 
