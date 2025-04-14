@@ -3,13 +3,14 @@ import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { postEventDetails } from "@/apiService/apiServices";
 import axios, { AxiosError } from "axios";
-import { Calendar } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { toast } from "react-toastify";
 import { FormikHelpers } from "formik";
 import { validate } from "@/utils/schema";
 import { CustomErrorResponse } from "@/apiService/apiServices";
+// import ClockClockwise from '@/assests/icons/ClockClockwise.svg'
 // import QRCode from "react-qr-code";
 import { formatDate } from "@/utils/formatters"; // Removed formatTime
 
@@ -200,7 +201,8 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
                     selected={values.startDate}
                     onChange={(date) => setFieldValue("startDate", date)}
                     icon={
-                      <Calendar
+                      <CalendarDays
+                        color="#E84C23"
                         className="absolute  -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
                         size={20}
                       />
@@ -228,8 +230,9 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
                     selected={values.endDate}
                     onChange={(date) => setFieldValue("endDate", date)}
                     icon={
-                      <Calendar
-                        className="absolute -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                      <CalendarDays
+                        color="#E84C23"
+                        className="absolute  -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
                         size={20}
                       />
                     }
@@ -259,8 +262,13 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
                     name="startTime"
                     value={values.startTime || ""}
                     onChange={(e) => setFieldValue("startTime", e.target.value)}
-                    className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                    className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 pl-3 pr-10 py-2 focus:outline-none focus:ring-0 [appearance:textfield] [&::-webkit-calendar-picker-indicator]:hidden"
                   />
+                  {/* <ClockClockwise
+                    className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none"
+                    size={20}
+                    color="#E84C23"
+                  /> */}
                 </div>
                 <ErrorMessage
                   name="startTime"

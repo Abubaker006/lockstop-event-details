@@ -56,7 +56,7 @@ export default function ClientLayout({
           draggable
           pauseOnHover
           toastClassName={() =>
-            "w-[400px] md:w-[500px] bg-white shadow-lg rounded-lg p-4 text-black flex flex-row"
+            "w-[300px] md:w-[400px] bg-white shadow-lg rounded-lg p-4 text-black flex flex-row mt-2 "
           }
         />
       </div >

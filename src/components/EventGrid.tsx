@@ -4,7 +4,7 @@ import { FormikHelpers, Formik, Field, ErrorMessage, Form } from "formik";
 import { validate } from "@/utils/schema";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { Calendar } from "lucide-react";
+import { CalendarDays } from "lucide-react";
 import { Modal } from "antd";
 import { formatDate } from "@/utils/formatters";
 import QRCode from "react-qr-code";
@@ -443,6 +443,8 @@ const EventGrid = () => {
               onGridReady={onGridReady}
               onSelectionChanged={onSelectionChanged}
               paginationPageSizeSelector={[10, 20, 50]}
+             
+              
             />
           </div>
         </div>
@@ -605,7 +607,8 @@ const EventGrid = () => {
                         selected={values.startDate}
                         onChange={(date) => setFieldValue("startDate", date)}
                         icon={
-                          <Calendar
+                          <CalendarDays
+                            color="#E84C23"
                             className="absolute  -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
                             size={20}
                           />
@@ -633,8 +636,9 @@ const EventGrid = () => {
                         selected={values.endDate}
                         onChange={(date) => setFieldValue("endDate", date)}
                         icon={
-                          <Calendar
-                            className="absolute -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                          <CalendarDays
+                            color="#E84C23"
+                            className="absolute  -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
                             size={20}
                           />
                         }
