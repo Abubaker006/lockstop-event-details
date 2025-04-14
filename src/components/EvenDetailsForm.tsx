@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { postEventDetails } from "@/apiService/apiServices";
 import axios, { AxiosError } from "axios";
@@ -43,15 +43,11 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
   handleRefreshData,
   setQrCodeValue,
   setQrCodeModalVisible,
-  setIsAddEventFormVisible
+  setIsAddEventFormVisible,
 }) => {
-  // const [qrCodeValue, setQrCodeValue] = useState<string>("");
-  const [isRenderingForm, setIsRenderingForm] = useState<boolean>(true);
-
   const handleSubmitSuccess = (qrValue: string) => {
     setQrCodeValue(qrValue);
     setIsAddEventFormVisible(false);
-    setIsRenderingForm(false);
     setQrCodeModalVisible(true);
     handleRefreshData();
   };
@@ -134,201 +130,196 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
 
   return (
     <>
-      {isRenderingForm && (
-        <Formik
-          initialValues={
-            {
-              title: "",
-              location: "",
-              startDate: null,
-              endDate: null,
-              startTime: "",
-              endTime: "",
-              eventId: "",
-            } as EventDetailsFormValues
-          }
-          validate={validate}
-          validateOnChange={true}
-          validateOnBlur={true}
-          validateOnMount={true}
-          onSubmit={handleFormSubmit}
-        >
-          {({ values, isSubmitting, setFieldValue }) => (
-            <Form className="w-full mx-auto">
-              <div className="mb-4">
-                <label
-                  htmlFor="eventId"
-                  className="block text-gray-700 font-medium"
-                >
-                  Event Id <span className="text-red-500">*</span>
-                </label>
-                <Field
-                  type="text"
-                  name="eventId"
-                  id="eventId"
-                  className="w-full bg-[#FCFCFC] p-2 border border-[#d1e0e0] rounded focus:outline-none focus:border-[#d1e0e0]"
-                />
-                <ErrorMessage
-                  name="eventId"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
-              </div>
-
-              <div className="mb-4">
-                <label
-                  htmlFor="title"
-                  className="block text-gray-700 font-medium"
-                >
-                  Title
-                </label>
-                <Field
-                  type="text"
-                  name="title"
-                  id="title"
-                  className="w-full p-2 border border-[#d1e0e0] bg-[#FCFCFC] rounded focus:outline-none focus:border-[#d1e0e0]"
-                />
-                <ErrorMessage
-                  name="title"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
-              </div>
-
-              <div className="mb-4 w-[100%] flex flex-row gap-6">
-                <div className="w-full">
-                  <label className="text-sm text-gray-700 block mb-1">
-                    Start Date
-                  </label>
-                  <div className="relative  flex items-stretch">
-                    <DatePicker
-                      selected={values.startDate}
-                      onChange={(date) => setFieldValue("startDate", date)}
-                      icon={
-                        <Calendar
-                          className="absolute  -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                          size={20}
-                        />
-                      }
-                      showIcon={true}
-                      placeholderText=""
-                      dateFormat="MM/dd/yyyy"
-                      minDate={new Date()}
-                      className="w-[100%] md:w-[187%] h-11 bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
-                    />
-                  </div>
-                  <ErrorMessage
-                    name="startDate"
-                    component="div"
-                    className="text-red-500 text-sm mt-1"
-                  />
-                </div>
-
-                <div className="w-full">
-                  <label className="text-sm text-gray-700 block mb-1">
-                    End Date <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative h-11 flex items-stretch">
-                    <DatePicker
-                      selected={values.endDate}
-                      onChange={(date) => setFieldValue("endDate", date)}
-                      icon={
-                        <Calendar
-                          className="absolute -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                          size={20}
-                        />
-                      }
-                      showIcon={true}
-                      placeholderText=""
-                      dateFormat="MM/dd/yyyy"
-                      minDate={values.startDate || new Date()}
-                      className="w-[100%] sm:w-[130%] md:w-[187%] h-11 bg-[#FCFCFC] rounded-md border border-[#d1e0e0] text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
-                    />
-                  </div>
-                  <ErrorMessage
-                    name="endDate"
-                    component="div"
-                    className="text-red-500 text-sm mt-1"
-                  />
-                </div>
-              </div>
-
-              <div className="mb-4 w-[100%] flex flex-row gap-6">
-                <div className="w-full">
-                  <label className="text-sm text-gray-700 block mb-1">
-                    Start Time
-                  </label>
-                  <div className="relative h-11 flex items-stretch">
-                    <input
-                      type="time"
-                      name="startTime"
-                      value={values.startTime || ""}
-                      onChange={(e) =>
-                        setFieldValue("startTime", e.target.value)
-                      }
-                      className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
-                    />
-                  </div>
-                  <ErrorMessage
-                    name="startTime"
-                    component="div"
-                    className="text-red-500 text-sm mt-1"
-                  />
-                </div>
-
-                <div className="w-full">
-                  <label className="text-sm text-gray-700 block mb-1">
-                    End Time <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative h-11 flex items-stretch">
-                    <input
-                      type="time"
-                      name="endTime"
-                      value={values.endTime || ""}
-                      onChange={(e) => setFieldValue("endTime", e.target.value)}
-                      className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
-                    />
-                  </div>
-                  <ErrorMessage
-                    name="endTime"
-                    component="div"
-                    className="text-red-500 text-sm mt-1"
-                  />
-                </div>
-              </div>
-
-              <div className="mb-4">
-                <label
-                  htmlFor="location"
-                  className="block text-gray-700 font-medium"
-                >
-                  Location
-                </label>
-                <Field
-                  as="textarea"
-                  name="location"
-                  id="location"
-                  className="w-full p-2 h-[100px] bg-[#FCFCFC] border border-[#d1e0e0] rounded focus:outline-none focus:border-[#d1e0e0]"
-                />
-                <ErrorMessage
-                  name="location"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full bg-[#F54A00] text-white font-semibold py-2 px-4 rounded hover:bg-orange-600 transition"
-                disabled={isSubmitting}
+      <Formik
+        initialValues={
+          {
+            title: "",
+            location: "",
+            startDate: null,
+            endDate: null,
+            startTime: "",
+            endTime: "",
+            eventId: "",
+          } as EventDetailsFormValues
+        }
+        validate={validate}
+        validateOnChange={true}
+        validateOnBlur={true}
+        validateOnMount={true}
+        onSubmit={handleFormSubmit}
+      >
+        {({ values, isSubmitting, setFieldValue }) => (
+          <Form className="w-full mx-auto">
+            <div className="mb-4">
+              <label
+                htmlFor="eventId"
+                className="block text-gray-700 font-medium"
               >
-                {isSubmitting ? "Submitting..." : "Submit"}
-              </button>
-            </Form>
-          )}
-        </Formik>
-      )
-      }
+                Event Id <span className="text-red-500">*</span>
+              </label>
+              <Field
+                type="text"
+                name="eventId"
+                id="eventId"
+                className="w-full bg-[#FCFCFC] p-2 border border-[#d1e0e0] rounded focus:outline-none focus:border-[#d1e0e0]"
+              />
+              <ErrorMessage
+                name="eventId"
+                component="div"
+                className="text-red-500 text-sm mt-1"
+              />
+            </div>
+
+            <div className="mb-4">
+              <label
+                htmlFor="title"
+                className="block text-gray-700 font-medium"
+              >
+                Title
+              </label>
+              <Field
+                type="text"
+                name="title"
+                id="title"
+                className="w-full p-2 border border-[#d1e0e0] bg-[#FCFCFC] rounded focus:outline-none focus:border-[#d1e0e0]"
+              />
+              <ErrorMessage
+                name="title"
+                component="div"
+                className="text-red-500 text-sm mt-1"
+              />
+            </div>
+
+            <div className="mb-4 w-[100%] flex flex-row gap-6">
+              <div className="w-full">
+                <label className="text-sm text-gray-700 block mb-1">
+                  Start Date
+                </label>
+                <div className="relative  flex items-stretch">
+                  <DatePicker
+                    selected={values.startDate}
+                    onChange={(date) => setFieldValue("startDate", date)}
+                    icon={
+                      <Calendar
+                        className="absolute  -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                        size={20}
+                      />
+                    }
+                    showIcon={true}
+                    placeholderText=""
+                    dateFormat="MM/dd/yyyy"
+                    minDate={new Date()}
+                    className="w-[100%] md:w-[187%] h-11 bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                  />
+                </div>
+                <ErrorMessage
+                  name="startDate"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
+
+              <div className="w-full">
+                <label className="text-sm text-gray-700 block mb-1">
+                  End Date <span className="text-red-500">*</span>
+                </label>
+                <div className="relative h-11 flex items-stretch">
+                  <DatePicker
+                    selected={values.endDate}
+                    onChange={(date) => setFieldValue("endDate", date)}
+                    icon={
+                      <Calendar
+                        className="absolute -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                        size={20}
+                      />
+                    }
+                    showIcon={true}
+                    placeholderText=""
+                    dateFormat="MM/dd/yyyy"
+                    minDate={values.startDate || new Date()}
+                    className="w-[100%] sm:w-[130%] md:w-[187%] h-11 bg-[#FCFCFC] rounded-md border border-[#d1e0e0] text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                  />
+                </div>
+                <ErrorMessage
+                  name="endDate"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
+            </div>
+
+            <div className="mb-4 w-[100%] flex flex-row gap-6">
+              <div className="w-full">
+                <label className="text-sm text-gray-700 block mb-1">
+                  Start Time
+                </label>
+                <div className="relative h-11 flex items-stretch">
+                  <input
+                    type="time"
+                    name="startTime"
+                    value={values.startTime || ""}
+                    onChange={(e) => setFieldValue("startTime", e.target.value)}
+                    className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                  />
+                </div>
+                <ErrorMessage
+                  name="startTime"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
+
+              <div className="w-full">
+                <label className="text-sm text-gray-700 block mb-1">
+                  End Time <span className="text-red-500">*</span>
+                </label>
+                <div className="relative h-11 flex items-stretch">
+                  <input
+                    type="time"
+                    name="endTime"
+                    value={values.endTime || ""}
+                    onChange={(e) => setFieldValue("endTime", e.target.value)}
+                    className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                  />
+                </div>
+                <ErrorMessage
+                  name="endTime"
+                  component="div"
+                  className="text-red-500 text-sm mt-1"
+                />
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label
+                htmlFor="location"
+                className="block text-gray-700 font-medium"
+              >
+                Location
+              </label>
+              <Field
+                as="textarea"
+                name="location"
+                id="location"
+                className="w-full p-2 h-[100px] bg-[#FCFCFC] border border-[#d1e0e0] rounded focus:outline-none focus:border-[#d1e0e0]"
+              />
+              <ErrorMessage
+                name="location"
+                component="div"
+                className="text-red-500 text-sm mt-1"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-[#F54A00] text-white font-semibold py-2 px-4 rounded hover:bg-orange-600 transition"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </button>
+          </Form>
+        )}
+      </Formik>
     </>
   );
 };

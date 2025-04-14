@@ -1,18 +1,12 @@
 "use client";
 import { toast } from "react-toastify";
-import {
-  FormikHelpers,
-  Formik,
-  Field,
-  ErrorMessage,
-  Form as FormikForm,
-} from "formik";
+import { FormikHelpers, Formik, Field, ErrorMessage, Form } from "formik";
 import { validate } from "@/utils/schema";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Calendar } from "lucide-react";
-import { Modal, Button } from "antd";
-import { formatDate, formatTime } from "@/utils/formatters";
+import { Modal } from "antd";
+import { formatDate } from "@/utils/formatters";
 import QRCode from "react-qr-code";
 import {
   Trash2,
@@ -229,7 +223,10 @@ const EventGrid = () => {
   const onSelectionChanged = () => {
     if (gridApi) {
       const selectedNodes = gridApi.getSelectedRows();
-      setSelectedRow(selectedNodes.length > 0 ? selectedNodes[0] : null);
+      setTimeout(() => {
+        setSelectedRow(selectedNodes.length > 0 ? selectedNodes[0] : null);
+        gridApi.clearFocusedCell();
+      }, 0);
     }
   };
 
@@ -242,13 +239,16 @@ const EventGrid = () => {
     try {
       const response = await deleteEvent(row._id);
       if (response) {
-        toast.success("Event deleted successfully.");
         const updatedRowData = rowData.filter(
           (dataRow: Event) => dataRow.eventId !== row.eventId
         );
+        gridApi?.clearFocusedCell();
         setRowData(updatedRowData as Event[]);
-        gridApi?.deselectAll();
-        setSelectedRow(null);
+        setTimeout(() => {
+          gridApi?.deselectAll();
+          setSelectedRow(null);
+        }, 0);
+        toast.success("Event deleted successfully.");
       } else {
         toast.error("Failed to delete event.");
       }
@@ -283,12 +283,28 @@ const EventGrid = () => {
     if (!selectedRow) return;
 
     try {
+      // Combine date and time for startDate
+      let adjustedStartDate = values.startDate;
+      if (values.startDate && values.startTime) {
+        const [hours, minutes] = values.startTime.split(":").map(Number);
+        adjustedStartDate = new Date(values.startDate);
+        adjustedStartDate.setHours(hours, minutes);
+      }
+
+      // Combine date and time for endDate
+      let adjustedEndDate = values.endDate;
+      if (values.endDate && values.endTime) {
+        const [hours, minutes] = values.endTime.split(":").map(Number);
+        adjustedEndDate = new Date(values.endDate);
+        adjustedEndDate.setHours(hours, minutes);
+      }
+
       const updatedEventData: UpdateEventPayload = {
         eventId: values.eventId,
-        eventTitle: values.title,
-        eventLocation: values.location,
-        startDate: values.startDate ?? null,
-        endDate: values.endDate ?? null,
+        title: values.title,
+        location: values.location,
+        startDate: adjustedStartDate ?? null,
+        endDate: adjustedEndDate ?? null,
       };
 
       const response = await updateEvent(selectedRow._id, updatedEventData);
@@ -296,8 +312,10 @@ const EventGrid = () => {
         toast.success("Event updated successfully.");
         await fetchData();
         setIsUpdateModalVisible(false);
-        gridApi?.deselectAll();
-        setSelectedRow(null);
+        setTimeout(() => {
+          gridApi?.deselectAll();
+          setSelectedRow(null);
+        }, 0);
         actions.resetForm();
       } else {
         toast.error("Failed to update event.");
@@ -312,8 +330,10 @@ const EventGrid = () => {
 
   const handleModalCancel = () => {
     setIsUpdateModalVisible(false);
-    gridApi?.deselectAll();
-    setSelectedRow(null);
+    setTimeout(() => {
+      gridApi?.deselectAll();
+      setSelectedRow(null);
+    }, 0);
   };
 
   const handleGenerateQrCode = (row: Event) => {
@@ -321,10 +341,12 @@ const EventGrid = () => {
       ? formatDate(row?.startDate)
       : null;
     const formattedStartTime = row?.startDate
-      ? formatTime(row?.startDate)
+      ? new Date(row.startDate).toTimeString().slice(0, 5) // e.g., "06:48"
+      : null;
+    const formattedEndTime = row?.endDate
+      ? new Date(row.endDate).toTimeString().slice(0, 5) // e.g., "06:48"
       : null;
     const formattedEndDate = row?.endDate ? formatDate(row?.endDate) : null;
-    const formattedEndTime = row?.endDate ? formatTime(row?.endDate) : null;
 
     const qrData: QRCodeData = {
       scanType: "valetAdmin",
@@ -486,7 +508,7 @@ const EventGrid = () => {
         title="Update Event"
         open={isUpdateModalVisible}
         onCancel={handleModalCancel}
-        width={'800px'}
+        width={"800px"}
         footer={null}
         centered
       >
@@ -505,10 +527,23 @@ const EventGrid = () => {
                   ? new Date(selectedRow.endDate)
                   : null,
                 startTime: selectedRow.startDate
-                  ? new Date(selectedRow.startDate).toTimeString().slice(0, 5)
+                  ? new Date(selectedRow.startDate).toLocaleTimeString(
+                      "en-US",
+                      {
+                        hour12: false,
+                        hour: "2-digit",
+                        minute: "2-digit",
+                        timeZone: "America/Chicago",
+                      }
+                    )
                   : "",
                 endTime: selectedRow.endDate
-                  ? new Date(selectedRow.endDate).toTimeString().slice(0, 5)
+                  ? new Date(selectedRow.endDate).toLocaleTimeString("en-US", {
+                      hour12: false,
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      timeZone: "America/Chicago",
+                    })
                   : "",
               } as EventDetailsFormValues
             }
@@ -519,7 +554,7 @@ const EventGrid = () => {
             onSubmit={handleFormSubmit}
           >
             {({ values, isSubmitting, setFieldValue }) => (
-              <FormikForm className=" w-full mx-auto">
+              <Form className="w-full mx-auto">
                 <div className="mb-4">
                   <label
                     htmlFor="eventId"
@@ -531,7 +566,7 @@ const EventGrid = () => {
                     type="text"
                     name="eventId"
                     id="eventId"
-                    className="w-full p-2 border border-[#d1e0e0] rounded focus:outline-none focus:border-[#d1e0e0]"
+                    className="w-full bg-[#FCFCFC] p-2 border border-[#d1e0e0] rounded focus:outline-none focus:border-[#d1e0e0]"
                   />
                   <ErrorMessage
                     name="eventId"
@@ -539,6 +574,7 @@ const EventGrid = () => {
                     className="text-red-500 text-sm mt-1"
                   />
                 </div>
+
                 <div className="mb-4">
                   <label
                     htmlFor="title"
@@ -550,7 +586,7 @@ const EventGrid = () => {
                     type="text"
                     name="title"
                     id="title"
-                    className="w-full p-2 border border-[#d1e0e0] rounded focus:outline-none focus:border-[#d1e0e0]"
+                    className="w-full p-2 border border-[#d1e0e0] bg-[#FCFCFC] rounded focus:outline-none focus:border-[#d1e0e0]"
                   />
                   <ErrorMessage
                     name="title"
@@ -558,6 +594,111 @@ const EventGrid = () => {
                     className="text-red-500 text-sm mt-1"
                   />
                 </div>
+
+                <div className="mb-4 w-[100%] flex flex-row gap-6">
+                  <div className="w-full">
+                    <label className="text-sm text-gray-700 block mb-1">
+                      Start Date
+                    </label>
+                    <div className="relative  flex items-stretch">
+                      <DatePicker
+                        selected={values.startDate}
+                        onChange={(date) => setFieldValue("startDate", date)}
+                        icon={
+                          <Calendar
+                            className="absolute  -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                            size={20}
+                          />
+                        }
+                        showIcon={true}
+                        placeholderText=""
+                        dateFormat="MM/dd/yyyy"
+                        minDate={new Date()}
+                        className="w-[100%] md:w-[187%] h-11 bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                      />
+                    </div>
+                    <ErrorMessage
+                      name="startDate"
+                      component="div"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <label className="text-sm text-gray-700 block mb-1">
+                      End Date <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative h-11 flex items-stretch">
+                      <DatePicker
+                        selected={values.endDate}
+                        onChange={(date) => setFieldValue("endDate", date)}
+                        icon={
+                          <Calendar
+                            className="absolute -right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
+                            size={20}
+                          />
+                        }
+                        showIcon={true}
+                        placeholderText=""
+                        dateFormat="MM/dd/yyyy"
+                        minDate={values.startDate || new Date()}
+                        className="w-[100%] sm:w-[130%] md:w-[187%] h-11 bg-[#FCFCFC] rounded-md border border-[#d1e0e0] text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                      />
+                    </div>
+                    <ErrorMessage
+                      name="endDate"
+                      component="div"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div className="mb-4 w-[100%] flex flex-row gap-6">
+                  <div className="w-full">
+                    <label className="text-sm text-gray-700 block mb-1">
+                      Start Time
+                    </label>
+                    <div className="relative h-11 flex items-stretch">
+                      <input
+                        type="time"
+                        name="startTime"
+                        value={values.startTime || ""}
+                        onChange={(e) =>
+                          setFieldValue("startTime", e.target.value)
+                        }
+                        className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                      />
+                    </div>
+                    <ErrorMessage
+                      name="startTime"
+                      component="div"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+
+                  <div className="w-full">
+                    <label className="text-sm text-gray-700 block mb-1">
+                      End Time <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative h-11 flex items-stretch">
+                      <input
+                        type="time"
+                        name="endTime"
+                        value={values.endTime || ""}
+                        onChange={(e) =>
+                          setFieldValue("endTime", e.target.value)
+                        }
+                        className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                      />
+                    </div>
+                    <ErrorMessage
+                      name="endTime"
+                      component="div"
+                      className="text-red-500 text-sm mt-1"
+                    />
+                  </div>
+                </div>
+
                 <div className="mb-4">
                   <label
                     htmlFor="location"
@@ -566,10 +707,10 @@ const EventGrid = () => {
                     Location
                   </label>
                   <Field
-                    type="text"
+                    as="textarea"
                     name="location"
                     id="location"
-                    className="w-full p-2 border border-[#d1e0e0] rounded focus:outline-none focus:border-[#d1e0e0]"
+                    className="w-full p-2 h-[100px] bg-[#FCFCFC] border border-[#d1e0e0] rounded focus:outline-none focus:border-[#d1e0e0]"
                   />
                   <ErrorMessage
                     name="location"
@@ -577,127 +718,15 @@ const EventGrid = () => {
                     className="text-red-500 text-sm mt-1"
                   />
                 </div>
-                <div className="mb-4">
-                  <div className="flex flex-row justify-between gap-4">
-                    {/* Start Date */}
-                    <div className="w-full">
-                      <label className="text-sm text-gray-700 block mb-1">
-                        Start Date
-                      </label>
-                      <div className="relative">
-                        <DatePicker
-                          selected={values.startDate}
-                          onChange={(date) => setFieldValue("startDate", date)}
-                          icon={
-                            <Calendar
-                              className="absolute md:-right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                              size={20}
-                            />
-                          }
-                          showIcon={true}
-                          placeholderText="mm/dd/yyyy"
-                          dateFormat="MM/dd/yyyy"
-                          minDate={new Date()}
-                          className="w-[100%] md:w-[187%] max-w-md h-11 border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 pr-10 focus:outline-none focus:border-[#d1e0e0] focus:ring-0"
-                        />
-                      </div>
-                      <ErrorMessage
-                        name="startDate"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
-                    </div>
-                    {/* Start Time */}
-                    <div className="w-full">
-                      <label className="text-sm text-gray-700 block mb-1">
-                        Start Time
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="time"
-                          name="startTime"
-                          value={values.startTime || ""}
-                          onChange={(e) =>
-                            setFieldValue("startTime", e.target.value)
-                          }
-                          className="w-full h-11 border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
-                        />
-                      </div>
-                      <ErrorMessage
-                        name="startTime"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <div className="flex flex-row justify-between gap-4">
-                    {/* End Date */}
-                    <div className="w-full">
-                      <label className="text-sm text-gray-700 block mb-1">
-                        End Date <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <DatePicker
-                          selected={values.endDate}
-                          onChange={(date) => setFieldValue("endDate", date)}
-                          icon={
-                            <Calendar
-                              className="absolute md:-right-[82%] top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"
-                              size={20}
-                            />
-                          }
-                          showIcon={true}
-                          placeholderText="mm/dd/yyyy"
-                          dateFormat="MM/dd/yyyy"
-                          minDate={values.startDate || new Date()}
-                          className="w-[100%] md:w-[183%] h-11 border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 pr-10 focus:outline-none focus:border-[#d1e0e0] focus:ring-0"
-                        />
-                      </div>
-                      <ErrorMessage
-                        name="endDate"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
-                    </div>
-                    {/* End Time */}
-                    <div className="w-full">
-                      <label className="text-sm text-gray-700 block mb-1">
-                        End Time <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <input
-                          type="time"
-                          name="endTime"
-                          value={values.endTime || ""}
-                          onChange={(e) =>
-                            setFieldValue("endTime", e.target.value)
-                          }
-                          className="w-full h-11 border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
-                        />
-                      </div>
-                      <ErrorMessage
-                        name="endTime"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
-                    </div>
-                  </div>
-                </div>
 
-                <div className="flex justify-end gap-2">
-                  <Button onClick={handleModalCancel}>Cancel</Button>
-                  <Button
-                    type="primary"
-                    htmlType="submit"
-                    disabled={isSubmitting}
-                    className="bg-[#F54A00] hover:bg-orange-600"
-                  >
-                    {isSubmitting ? "Updating..." : "Update"}
-                  </Button>
-                </div>
-              </FormikForm>
+                <button
+                  type="submit"
+                  className="w-full bg-[#F54A00] text-white font-semibold py-2 px-4 rounded hover:bg-orange-600 transition"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit"}
+                </button>
+              </Form>
             )}
           </Formik>
         )}

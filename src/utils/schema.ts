@@ -10,6 +10,9 @@ export const validate = (values: EventDetailsFormValues) => {
   if (!values.endDate) {
     errors.endDate = "End Date is required.";
   }
+  if (!values.endTime) {
+    errors.endTime = "End Time is required.";
+  }
 
   if (values.startDate) {
     if (values.endDate && values.endDate < values.startDate) {

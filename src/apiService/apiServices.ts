@@ -34,24 +34,24 @@ export interface CustomErrorResponse {
 }
 export interface UpdateEventPayload {
   eventId: string | number;
-  eventTitle: string;
-  eventLocation: string;
+  title: string;
+  location: string;
   startDate: Date | null;
   endDate: Date | null;
 }
 
 export const postEventDetails = async (
   eventId: string | number,
-  eventTitle: string,
-  eventLocation: string,
+  title: string,
+  location: string,
   startDate: Date | null,
   endDate: Date | null
 ): Promise<APIRESPONSE> => {
   try {
     const payload = {
       eventId: eventId,
-      title: eventTitle,
-      location: eventLocation,
+      title: title,
+      location: location,
       startDate: startDate,
       endDate: endDate,
     };
