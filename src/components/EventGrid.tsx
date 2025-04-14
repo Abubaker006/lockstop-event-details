@@ -21,7 +21,7 @@ import {
   ChevronRight,
   ChevronLeft,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import EventDetailsForm from "@/components/EvenDetailsForm";
 import {
   getAllEvents,
@@ -82,7 +82,6 @@ const EventGrid = () => {
     useState<boolean>(false);
   const [isAddEventFormVisible, setIsAddEventFormVisible] =
     useState<boolean>(false);
-  const [isFormQrCodeVisible, setIsFormQrCodeVisible] = useState<boolean>(true);
   const [screenWidth, setScreenWidth] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -94,6 +93,13 @@ const EventGrid = () => {
 
   // Pagination handler
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const handleSetQrCodeModalVisible = (visible: boolean, qrValue?: string) => {
+    setIsQrCodeModalVisible(visible);
+    if (qrValue) {
+      setQrCodeValue(qrValue);
+    }
+  };
 
   const isEventExpired = (endDate: string | Date): boolean => {
     if (!endDate) return true;
@@ -345,7 +351,7 @@ const EventGrid = () => {
 
   const handleCancelAddEventModal = () => {
     setIsAddEventFormVisible(false);
-    setIsFormQrCodeVisible(false);
+    // setIsFormQrCodeVisible(false);
   };
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -732,7 +738,9 @@ const EventGrid = () => {
         <hr className="opacity-40 py-3" />
         <div className="w-full">
           <EventDetailsForm
-            disableQRcode={isFormQrCodeVisible}
+            setQrCodeModalVisible={handleSetQrCodeModalVisible}
+            setIsAddEventFormVisible={setIsAddEventFormVisible}
+            setQrCodeValue={setQrCodeValue}
             handleRefreshData={fetchData}
           />
         </div>

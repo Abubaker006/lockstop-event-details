@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { postEventDetails } from "@/apiService/apiServices";
 import axios, { AxiosError } from "axios";
@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 import { FormikHelpers } from "formik";
 import { validate } from "@/utils/schema";
 import { CustomErrorResponse } from "@/apiService/apiServices";
-import QRCode from "react-qr-code";
+// import QRCode from "react-qr-code";
 import { formatDate } from "@/utils/formatters"; // Removed formatTime
 
 export interface EventDetailsFormValues {
@@ -34,19 +34,25 @@ interface QRCodeData {
 
 interface EventDetailsFormProps {
   handleRefreshData: () => void;
-  disableQRcode: boolean;
+  setQrCodeModalVisible: (visible: boolean) => void;
+  setQrCodeValue: (value: string) => void;
+  setIsAddEventFormVisible: (visible: boolean) => void;
 }
 
 const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
   handleRefreshData,
-  disableQRcode,
+  setQrCodeValue,
+  setQrCodeModalVisible,
+  setIsAddEventFormVisible
 }) => {
-  const [qrCodeValue, setQrCodeValue] = useState<string>("");
+  // const [qrCodeValue, setQrCodeValue] = useState<string>("");
   const [isRenderingForm, setIsRenderingForm] = useState<boolean>(true);
 
   const handleSubmitSuccess = (qrValue: string) => {
     setQrCodeValue(qrValue);
+    setIsAddEventFormVisible(false);
     setIsRenderingForm(false);
+    setQrCodeModalVisible(true);
     handleRefreshData();
   };
 
@@ -120,15 +126,15 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
       }
     }
   };
-  useEffect(() => {
-    if (disableQRcode) return;
-    setQrCodeValue("");
-    setIsRenderingForm(true);
-  }, [disableQRcode]);
+  // useEffect(() => {
+  //   if (disableQRcode) return;
+  //   setQrCodeValue("");
+  //   setIsRenderingForm(true);
+  // }, [disableQRcode]);
 
   return (
     <>
-      {isRenderingForm ? (
+      {isRenderingForm && (
         <Formik
           initialValues={
             {
@@ -321,29 +327,8 @@ const EventDetailsForm: React.FC<EventDetailsFormProps> = ({
             </Form>
           )}
         </Formik>
-      ) : (
-        <>
-          {qrCodeValue && (
-            <div className="mt-6 text-center relative">
-              <h3 className="text-lg font-semibold mb-2">Event QR Code</h3>
-              <div className="inline-block p-4 bg-white rounded">
-                <QRCode
-                  value={qrCodeValue}
-                  size={300}
-                  bgColor="#FFE6E0"
-                  fgColor="#F54A00"
-                  level="H"
-                  style={{
-                    padding: 20,
-                    borderRadius: 8,
-                    background: "#FFE6E0",
-                  }}
-                />
-              </div>
-            </div>
-          )}
-        </>
-      )}
+      )
+      }
     </>
   );
 };
