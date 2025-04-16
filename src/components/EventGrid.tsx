@@ -4,9 +4,9 @@ import { FormikHelpers, Formik, Field, ErrorMessage, Form } from "formik";
 import { validate } from "@/utils/schema";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { CalendarDays } from "lucide-react";
+import { CalendarDays, History } from "lucide-react";
 import { Modal } from "antd";
-import { formatDate } from "@/utils/formatters";
+// import { formatDate, formatTime } from "@/utils/formatters";
 import QRCode from "react-qr-code";
 import {
   Trash2,
@@ -22,6 +22,7 @@ import {
   deleteEvent,
   updateEvent,
   UpdateEventPayload,
+  deleteEventsBulk,
 } from "@/apiService/apiServices";
 import { AgGridReact } from "ag-grid-react";
 import {
@@ -32,6 +33,10 @@ import {
   ICellRendererParams,
   ColDef,
 } from "ag-grid-community";
+import { MobileTimePicker } from "@mui/x-date-pickers";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs from "dayjs";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { EventCard } from "./EventCard";
 interface Event {
@@ -50,16 +55,16 @@ interface EventDetailsFormValues {
   startDate: Date | null;
   endDate: Date | null;
   eventId: string;
-  endTime?: string;
+  endTime: string;
   startTime?: string;
 }
 
 interface QRCodeData {
   scanType: string;
   startDate: string | null;
-  startTime: string | null;
+  // startTime: string | null;
   endDate: string | null;
-  endTime: string | null;
+  // endTime: string | null;
   timezone: string;
 }
 
@@ -79,13 +84,14 @@ const EventGrid = () => {
   const [screenWidth, setScreenWidth] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  // Calculate paginated data
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = rowData.slice(indexOfFirstItem, indexOfLastItem);
   const totalPages = Math.ceil(rowData.length / itemsPerPage);
+  const [isDeleteAllModalVisible, setIsDeleteAllModalVisible] =
+    useState<boolean>(false);
+  const [selectedRowsCount, setSelectedRowsCount] = useState<number>(0);
 
-  // Pagination handler
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   const handleSetQrCodeModalVisible = (visible: boolean, qrValue?: string) => {
@@ -108,9 +114,7 @@ const EventGrid = () => {
       field: "eventId",
       sortable: true,
       filter: true,
-      // wrapText:true,
       initialWidth: 180,
-      // maxWidth: 100,
     },
     {
       headerName: "Title",
@@ -220,11 +224,19 @@ const EventGrid = () => {
     setGridApi(params.api);
   };
 
+  // const onSelectionChanged = () => {
+  //   if (gridApi) {
+  //     const selectedNodes = gridApi.getSelectedRows();
+  //     setTimeout(() => {
+  //       setSelectedRow(selectedNodes.length > 0 ? selectedNodes[0] : null);
+  //       gridApi.clearFocusedCell();
+  //     }, 0);
+  //   }
+  // };
   const onSelectionChanged = () => {
     if (gridApi) {
-      const selectedNodes = gridApi.getSelectedRows();
       setTimeout(() => {
-        setSelectedRow(selectedNodes.length > 0 ? selectedNodes[0] : null);
+        setSelectedRowsCount(gridApi.getSelectedRows().length);
         gridApi.clearFocusedCell();
       }, 0);
     }
@@ -258,6 +270,24 @@ const EventGrid = () => {
     }
   };
 
+  const handleDeleteAll = async () => {
+    if (!gridApi) return;
+    const selectedRows = gridApi.getSelectedRows();
+    try {
+      await deleteEventsBulk(selectedRows.map((row) => row._id));
+      setRowData(
+        rowData.filter((row) => !selectedRows.includes(row))
+      );
+      gridApi.deselectAll();
+      setSelectedRow(null);
+      toast.success("All selected events deleted successfully.");
+    } catch (error) {
+      console.error("Error deleting events:", error);
+      toast.error("Failed to delete some events.");
+    }
+    setIsDeleteAllModalVisible(false);
+  }
+
   const handleUpdate = (row: Event) => {
     if (!row) {
       toast.error("Please select an event to update.");
@@ -283,28 +313,26 @@ const EventGrid = () => {
     if (!selectedRow) return;
 
     try {
-      // Combine date and time for startDate
-      let adjustedStartDate = values.startDate;
-      if (values.startDate && values.startTime) {
-        const [hours, minutes] = values.startTime.split(":").map(Number);
-        adjustedStartDate = new Date(values.startDate);
-        adjustedStartDate.setHours(hours, minutes);
-      }
+      // let adjustedStartDate = values.startDate;
+      // if (values.startDate && values.startTime) {
+      //   const [hours, minutes] = values.startTime.split(":").map(Number);
+      //   adjustedStartDate = new Date(values.startDate);
+      //   adjustedStartDate.setHours(hours, minutes);
+      // }
 
-      // Combine date and time for endDate
-      let adjustedEndDate = values.endDate;
-      if (values.endDate && values.endTime) {
-        const [hours, minutes] = values.endTime.split(":").map(Number);
-        adjustedEndDate = new Date(values.endDate);
-        adjustedEndDate.setHours(hours, minutes);
-      }
+      // let adjustedEndDate = values.endDate;
+      // if (values.endDate && values.endTime) {
+      //   const [hours, minutes] = values.endTime.split(":").map(Number);
+      //   adjustedEndDate = new Date(values.endDate);
+      //   adjustedEndDate.setHours(hours, minutes);
+      // }
 
       const updatedEventData: UpdateEventPayload = {
         eventId: values.eventId,
         title: values.title,
         location: values.location,
-        startDate: adjustedStartDate ?? null,
-        endDate: adjustedEndDate ?? null,
+        startDate: values.startDate ?? null,
+        endDate: values.endDate ?? null,
       };
 
       const response = await updateEvent(selectedRow._id, updatedEventData);
@@ -337,23 +365,23 @@ const EventGrid = () => {
   };
 
   const handleGenerateQrCode = (row: Event) => {
-    const formattedStartDate = row?.startDate
-      ? formatDate(row?.startDate)
-      : null;
-    const formattedStartTime = row?.startDate
-      ? new Date(row.startDate).toTimeString().slice(0, 5) // e.g., "06:48"
-      : null;
-    const formattedEndTime = row?.endDate
-      ? new Date(row.endDate).toTimeString().slice(0, 5) // e.g., "06:48"
-      : null;
-    const formattedEndDate = row?.endDate ? formatDate(row?.endDate) : null;
+    const formattedStartDate = row?.startDate ? row?.startDate : null;
+    // const formattedStartTime = row?.startDate
+    //   ? new Date(row.startDate).toTimeString().slice(0, 5)
+    //   : null;
+    // const formattedEndTime = row?.endDate
+    //   ? new Date(row.endDate).toTimeString().slice(0, 5)
+    //   : null;
+    // const formattedStartTime = row?.startDate?row?.startDate:null;
+    // const formattedEndTime = row?.endDate ? row?.endDate : null;
+    const formattedEndDate = row?.endDate ? row?.endDate : null;
 
     const qrData: QRCodeData = {
       scanType: "valetAdmin",
       startDate: formattedStartDate,
-      startTime: formattedStartTime,
+      // startTime: formattedStartDate,
       endDate: formattedEndDate,
-      endTime: formattedEndTime,
+      // endTime: formattedEndTime,
       timezone: "America/Chicago",
     };
 
@@ -439,13 +467,20 @@ const EventGrid = () => {
               columnDefs={columnDefs}
               pagination={true}
               paginationPageSize={11}
-              rowSelection={{ mode: "singleRow" }}
+              rowSelection={{ mode: "multiRow" }}
               onGridReady={onGridReady}
               onSelectionChanged={onSelectionChanged}
               paginationPageSizeSelector={[10, 20, 50]}
-             
-              
             />
+          </div>
+          <div className="flex justify-end mt-4">
+            <button
+              onClick={() => setIsDeleteAllModalVisible(true)}
+              className="bg-[#F54A00] text-white px-4 py-2 rounded-md hover:cursor-pointer transition disabled:bg-gray-300"
+              disabled={selectedRowsCount === 0}
+            >
+              Delete All
+            </button>
           </div>
         </div>
       ) : (
@@ -528,24 +563,33 @@ const EventGrid = () => {
                 endDate: selectedRow.endDate
                   ? new Date(selectedRow.endDate)
                   : null,
+                // startTime: selectedRow.startDate
+                //   ? new Date(selectedRow.startDate).toLocaleTimeString(
+                //       "en-US",
+                //       {
+                //         hour12: false,
+                //         hour: "2-digit",
+                //         minute: "2-digit",
+                //         timeZone: "America/Chicago",
+                //       }
+                //     )
+                //   : "",
+                // endTime: selectedRow.endDate
+                //   ? new Date(selectedRow.endDate).toLocaleTimeString("en-US", {
+                //       hour12: false,
+                //       hour: "2-digit",
+                //       minute: "2-digit",
+                //       timeZone: "America/Chicago",
+                //     })
+                //   : "",
+                // startTime: selectedRow.startDate
+                //   ? new Date(selectedRow.startDate).toTimeString().slice(0, 5)
+                //   : "",
                 startTime: selectedRow.startDate
-                  ? new Date(selectedRow.startDate).toLocaleTimeString(
-                      "en-US",
-                      {
-                        hour12: false,
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        timeZone: "America/Chicago",
-                      }
-                    )
+                  ? new Date(selectedRow.startDate).toTimeString().slice(0, 5)
                   : "",
                 endTime: selectedRow.endDate
-                  ? new Date(selectedRow.endDate).toLocaleTimeString("en-US", {
-                      hour12: false,
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      timeZone: "America/Chicago",
-                    })
+                  ? new Date(selectedRow.endDate).toTimeString().slice(0, 5)
                   : "",
               } as EventDetailsFormValues
             }
@@ -663,14 +707,71 @@ const EventGrid = () => {
                       Start Time
                     </label>
                     <div className="relative h-11 flex items-stretch">
-                      <input
+                      {/* <input
                         type="time"
                         name="startTime"
                         value={values.startTime || ""}
                         onChange={(e) =>
                           setFieldValue("startTime", e.target.value)
                         }
-                        className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                        className="accent-[#E84C23] w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 pl-6 pr-3 py-2 focus:outline-none focus:ring-0 [appearance:textfield]"
+                      /> */}
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <MobileTimePicker
+                          disabled={!values.startDate}
+                          value={
+                            values.startDate ? dayjs(values.startDate) : null
+                          }
+                          onChange={(value) => {
+                            if (value && values.startDate) {
+                              const updatedDateTime = dayjs(values.startDate)
+                                .hour(value.hour())
+                                .minute(value.minute())
+                                .second(0)
+                                .millisecond(0);
+
+                              setFieldValue(
+                                "startDate",
+                                updatedDateTime.toISOString()
+                              );
+                              setFieldValue(
+                                "startTime",
+                                updatedDateTime.toISOString()
+                              );
+                            } else {
+                              setFieldValue(
+                                "startDate",
+                                value ? value.toISOString() : ""
+                              );
+                              setFieldValue(
+                                "startTime",
+                                value ? value.toISOString() : ""
+                              );
+                            }
+                          }}
+                          slotProps={{
+                            textField: {
+                              variant: "outlined",
+                              fullWidth: true,
+                              placeholder: "Select a time",
+                              size: "small",
+                              InputProps: {
+                                sx: {
+                                  backgroundColor: "#FCFCFC",
+                                  height: 44,
+                                  fontSize: 14,
+                                  borderRadius: "6px",
+                                  paddingLeft:2,
+                                },
+                              },
+                            },
+                          }}
+                        />
+                      </LocalizationProvider>
+                      <History
+                        className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none bg-[#FCFCFC] scale-x-[-1]"
+                        size={18}
+                        color={values.startDate ? "#E84C23" : "#9CA3AF"}
                       />
                     </div>
                     <ErrorMessage
@@ -685,16 +786,73 @@ const EventGrid = () => {
                       End Time <span className="text-red-500">*</span>
                     </label>
                     <div className="relative h-11 flex items-stretch">
-                      <input
+                      {/* <input
                         type="time"
                         name="endTime"
                         value={values.endTime || ""}
                         onChange={(e) =>
                           setFieldValue("endTime", e.target.value)
                         }
-                        className="w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-0"
+                        className="accent-[#E84C23] w-full h-full bg-[#FCFCFC] border border-[#d1e0e0] rounded-md text-sm text-gray-700 placeholder-gray-400 pl-6 pr-3 py-2 focus:outline-none focus:ring-0 appearence-none"
+                      /> */}
+
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <MobileTimePicker
+                          disabled={!values.endDate}
+                          value={values.endDate ? dayjs(values.endDate) : null}
+                          onChange={(value) => {
+                            if (value && values.endDate) {
+                              const updatedDateTime = dayjs(values.endDate)
+                                .hour(value.hour())
+                                .minute(value.minute())
+                                .second(0)
+                                .millisecond(0);
+
+                              setFieldValue(
+                                "endDate",
+                                updatedDateTime.toISOString()
+                              );
+                              setFieldValue(
+                                "endTime",
+                                updatedDateTime.toISOString()
+                              );
+                            } else {
+                              setFieldValue(
+                                "endDate",
+                                value ? value.toISOString() : null
+                              );
+                              setFieldValue(
+                                "endTime",
+                                value ? value.toISOString() : null
+                              );
+                            }
+                          }}
+                          slotProps={{
+                            textField: {
+                              variant: "outlined",
+                              fullWidth: true,
+                              placeholder: "Select a time",
+                              size: "small",
+                              InputProps: {
+                                sx: {
+                                  backgroundColor: "#FCFCFC",
+                                  height: 44,
+                                  fontSize: 14,
+                                  borderRadius: "6px",
+                                  paddingLeft:2,
+                                },
+                              },
+                            },
+                          }}
+                        />
+                      </LocalizationProvider>
+                      <History
+                        className="absolute right-3 top-1/2 -translate-y-1/2 bg-[#FCFCFC] pointer-events-none"
+                        size={18}
+                        color={values.endDate ? "#E84C23" : "#9CA3AF"}
                       />
                     </div>
+
                     <ErrorMessage
                       name="endTime"
                       component="div"
@@ -776,6 +934,32 @@ const EventGrid = () => {
             setQrCodeValue={setQrCodeValue}
             handleRefreshData={fetchData}
           />
+        </div>
+      </Modal>
+
+      <Modal
+        title="Confirm Delete All"
+        open={isDeleteAllModalVisible}
+        onCancel={() => setIsDeleteAllModalVisible(false)}
+        footer={null}
+        centered
+      >
+        <p className="mt-4">
+          Are you sure you want to delete all selected events?
+        </p>
+        <div className="flex justify-end gap-2 mt-4">
+          <button
+            onClick={() => setIsDeleteAllModalVisible(false)}
+            className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+          >
+            No
+          </button>
+          <button
+            onClick={handleDeleteAll}
+            className="px-4 py-2 bg-[#F54A00] text-white rounded-md hover:cursor-pointer"
+          >
+            Yes
+          </button>
         </div>
       </Modal>
     </>

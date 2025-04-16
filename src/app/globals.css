@@ -72,13 +72,16 @@ body {
 .ag-theme-custom .ag-cell:last-child {
   border-right: none;
 }
+.ag-theme-custom .ag-cell:first-child {
+  padding-left: 20px;
+}
 
 /* Center specific columns */
 .ag-theme-custom .ag-header-cell-label,
 .ag-theme-custom .ag-cell {
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Center text in header and cells */
+  justify-content: center; /* Center text in header and cells */
 }
 
 /* Left-align specific columns (e.g., Title, Location) */
@@ -135,6 +138,32 @@ body {
   font-size: 12px;
   color: #374151;
 }
+.ag-theme-alpine .ag-cell-wrapper, 
+.ag-theme-alpine .ag-header-cell-label {
+  align-items: center !important;
+}
+
+/* Wrapper of the entire input group */
+.react-time-picker__wrapper {
+  @apply w-full h-11 bg-[#FCFCFC] pl-3 pr-10 py-2 border-none rounded-md flex items-center;
+}
+
+/* Inputs (hour, minute, AM/PM) */
+.react-time-picker__inputGroup__input {
+  @apply w-8 text-sm text-gray-700 bg-transparent outline-none;
+}
+
+/* Whole input group */
+.react-time-picker__inputGroup {
+  @apply flex items-center gap-1 w-full;
+}
+
+/* Force icon to be absolutely placed on the right (optional) */
+.react-time-picker__clock {
+  @apply absolute right-3 top-1/2 -translate-y-1/2;
+}
+
+
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

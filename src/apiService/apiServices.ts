@@ -1,6 +1,8 @@
 import axios from "axios";
+import Cookies from "js-cookie";
 
 const apiEndpoint = process.env.NEXT_PUBLIC_SERVER_URL;
+
 
 export interface APIRESPONSE {
   status: string | number;
@@ -9,8 +11,8 @@ export interface APIRESPONSE {
     eventId: string | number;
     title: string;
     location: string;
-    startDate: Date | null;
-    endDate: Date | null;
+    startDate: string | null;
+    endDate: string | null;
   };
 }
 export interface APIRESPONSELOGIN {
@@ -40,12 +42,29 @@ export interface UpdateEventPayload {
   endDate: Date | null;
 }
 
+const api = axios.create({
+  baseURL: `${apiEndpoint}/api/v1`,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+api.interceptors.request.use(
+  (config) => {
+    const token = Cookies.get("auth_token");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 export const postEventDetails = async (
   eventId: string | number,
   title: string,
   location: string,
-  startDate: Date | null,
-  endDate: Date | null
+  startDate: string | null,
+  endDate: string | null
 ): Promise<APIRESPONSE> => {
   try {
     const payload = {
@@ -55,8 +74,8 @@ export const postEventDetails = async (
       startDate: startDate,
       endDate: endDate,
     };
-    const response = await axios.post<APIRESPONSE>(
-      `${apiEndpoint}/api/v1/addValetEvent`,
+    const response = await api.post<APIRESPONSE>(
+      `/addValetEvent`,
       payload,
       {
         headers: {
@@ -72,8 +91,8 @@ export const postEventDetails = async (
 
 export const getAllEvents = async () => {
   try {
-    const response = await axios.get<APIRESPONSE>(
-      `${apiEndpoint}/api/v1/getAllValetEvents`,
+    const response = await api.get<APIRESPONSE>(
+      "/getAllValetEvents",
       {
         headers: {
           "Content-Type": "application/json",
@@ -89,8 +108,8 @@ export const getAllEvents = async () => {
 
 export const deleteEvent = async (id: string) => {
   try {
-    const response = await axios.delete<APIRESPONSE>(
-      `${apiEndpoint}/api/v1/deleteValetEvent/${id}`,
+    const response = await api.delete<APIRESPONSE>(
+      `/deleteValetEvent/${id}`,
       {
         headers: {
           "Content-Type": "application/json",
@@ -102,11 +121,28 @@ export const deleteEvent = async (id: string) => {
     throw error;
   }
 };
+export const deleteEventsBulk = async (ids: string[]) => {
+  try {
+    const response = await api.delete<APIRESPONSE>(
+      `/deleteValetEvents`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: { ids }, // <- this is important for api DELETE with body
+      }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 
 export const updateEvent = async (id: string, payload: UpdateEventPayload) => {
   try {
-    const response = await axios.put<APIRESPONSE>(
-      `${apiEndpoint}/api/v1/updateValetEvent/${id}`,
+    const response = await api.put<APIRESPONSE>(
+      `/updateValetEvent/${id}`,
       payload,
       {
         headers: {
@@ -123,8 +159,8 @@ export const updateEvent = async (id: string, payload: UpdateEventPayload) => {
 export const requestOtp = async (phoneNumber: string): Promise<APIRESPONSELOGIN> => {
   try {
     const payload = { phone_number: phoneNumber };
-    const response = await axios.post<APIRESPONSELOGIN>(
-      `${apiEndpoint}/api/v1/login`,
+    const response = await api.post<APIRESPONSELOGIN>(
+      `/login`,
       payload,
       { headers: { 'Content-Type': 'application/json' } }
     );
@@ -140,8 +176,8 @@ export const verifyOtp = async (
 ): Promise<APIRESPONSELOGIN> => {
   try {
     const payload = { phone_number: phoneNumber, otp };
-    const response = await axios.post<APIRESPONSELOGIN>(
-      `${apiEndpoint}/api/v1/verify`,
+    const response = await api.post<APIRESPONSELOGIN>(
+      `/verify`,
       payload,
       { headers: { 'Content-Type': 'application/json' } }
     );
